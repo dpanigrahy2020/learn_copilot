@@ -1,6 +1,6 @@
 import os
 import platform
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Get the system uptime (cross-platform)
 if platform.system() == "Windows":
@@ -13,13 +13,23 @@ if platform.system() == "Windows":
             text=True,
             shell=True
         )
-        boot_time_str = result.stdout.strip().split('\n')[1][:14]
-        boot_time = datetime.strptime(boot_time_str, "%Y%m%d%H%M%S")
-        uptime = datetime.now() - boot_time
-        print("System Uptime: " + str(uptime))
+        lines = result.stdout.strip().split('\n')
+        if len(lines) > 1:
+            boot_time_str = lines[1][:14]
+            boot_time = datetime.strptime(boot_time_str, "%Y%m%d%H%M%S")
+            uptime = datetime.now() - boot_time
+            print("System Uptime: " + str(uptime))
+        else:
+            print("Error: Could not parse uptime from wmic output")
     except Exception as e:
         print(f"Error getting uptime: {e}")
 else:
     # Use Unix/Linux command
-    uptime = os.popen('uptime -p').read().strip()
-    print("System Uptime: " + uptime)
+    try:
+        uptime = os.popen('uptime -p').read().strip()
+        if uptime:
+            print("System Uptime: " + uptime)
+        else:
+            print("Error: uptime command returned empty result")
+    except Exception as e:
+        print(f"Error getting uptime: {e}")
